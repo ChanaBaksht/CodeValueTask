@@ -1,5 +1,5 @@
 Hi, 
-Task will be Available on Sunday Morning. 
+Task will be available on Sunday Morning. 
 
 Thanks, 
 Ilya.
