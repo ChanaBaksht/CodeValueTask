@@ -24,6 +24,20 @@ services:
     networks:
       - store_exercise_1
 
+  solution-server:
+    container_name: solution-server
+    build:
+      context: ./
+      dockerfile: ./solution/Dockerfile-solution
+    ports:
+      - "8302:9991"
+    volumes:
+      - ./:/app
+#    environment:
+#      - STORE_NAME=amazon
+    networks:
+      - store_exercise_1
+
   mysql_db:
     container_name: mysql_db_1
     image: mysql:8.0
@@ -40,6 +54,30 @@ services:
     networks:
       - store_exercise_1
 
+  postgres_db:
+    container_name: postgres_db
+    image: postgres:15.1-alpine
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_db_storage:/var/lib/postgresql/data
+
+  pgadmin:
+    container_name: pgadmin
+    image: dpage/pgadmin4:6.18
+    restart: always
+    ports:
+      - "8090:9991"
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=postgres@postgres.com
+      - PGADMIN_DEFAULT_PASSWORD=postgres
+    volumes:
+      - pgadmin:/var/lib/pgadmin
+
 
 networks:
   store_exercise_1:
@@ -48,4 +86,8 @@ networks:
 
 volumes:
   mysql_db_storage:
+    driver: local
+  postgres_db_storage:
+    driver: local
+  pgadmin:
     driver: local

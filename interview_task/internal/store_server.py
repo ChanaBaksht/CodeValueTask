@@ -50,13 +50,19 @@ async def update_prices_if_needed(products: list):
 
 @app.get("/products")
 async def get_all(request: Request):
+    print(f'---#53, request:')
+    print(request)
     params = dict(request.query_params)
+    print(f'---#56, params:')
+    print(params)
 
     await asyncio.sleep(2)
     all_products = await load_products()
     filtered_products = all_products
     if 'name_contains' in params:
         filtered_products = [p for p in all_products if params['name_contains'] in p['name']]
+        print(f'---#64, filtered_products:')
+        print(filtered_products)
     logger.info(f'Store {STORE_NAME}: Received GET request with params {params}')
 
     response = {
