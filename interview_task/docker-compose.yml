@@ -1,7 +1,7 @@
+version: '3.8'
 services:
-
   ebay-server:
-    container_name: ebay-server
+    container_name: ebay-api_server
     build:
       context: .
       dockerfile: Dockerfile-store
@@ -13,7 +13,7 @@ services:
       - store_exercise_1
 
   amazon-server:
-    container_name: amazon-server
+    container_name: amazon-api_server
     build:
       context: .
       dockerfile: Dockerfile-store
@@ -24,27 +24,13 @@ services:
     networks:
       - store_exercise_1
 
-  solution-server:
-    container_name: solution-server
-    build:
-      context: ./
-      dockerfile: ./solution/Dockerfile-solution
-    ports:
-      - "8302:9991"
-    volumes:
-      - ./:/app
-#    environment:
-#      - STORE_NAME=amazon
-    networks:
-      - store_exercise_1
-
   mysql_db:
-    container_name: mysql_db_1
+    container_name: mysql_db
     image: mysql:8.0
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: abcdef123
-      MYSQL_DATABASE: app_db # Default database created at startup
+      MYSQL_DATABASE: app_db
       MYSQL_USER: dev
       MYSQL_PASSWORD: abcdef123
     volumes:
@@ -54,40 +40,42 @@ services:
     networks:
       - store_exercise_1
 
-  postgres_db:
-    container_name: postgres_db
-    image: postgres:15.1-alpine
-    restart: always
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_db_storage:/var/lib/postgresql/data
-
-  pgadmin:
-    container_name: pgadmin
-    image: dpage/pgadmin4:6.18
+  stores-server:
+    container_name: stores
+    build:
+      context: .
+      dockerfile: Dockerfile-solution
     restart: always
     ports:
-      - "8090:9991"
+      - "8302:9991"
     environment:
-      - PGADMIN_DEFAULT_EMAIL=postgres@postgres.com
-      - PGADMIN_DEFAULT_PASSWORD=postgres
+      - EBAY_API_URL=ebay-api_server:9991
+      - AMAZON_API_URL=amazon-api_server:9991
     volumes:
-      - pgadmin:/var/lib/pgadmin
+      - ./solution/:/app/solution
+    depends_on:
+      - mysql_db
+    networks:
+      - store_exercise_1
 
+  test:
+    container_name: stores_test
+    build:
+      context: .
+      dockerfile: Dockerfile-solution
+    command: [ "pytest", "-v" ]
+    environment:
+      - PYTHONPATH=/app
+    depends_on:
+      - mysql_db
+      - stores-server
+    networks:
+      - store_exercise_1
 
 networks:
   store_exercise_1:
     driver: bridge
 
-
 volumes:
   mysql_db_storage:
-    driver: local
-  postgres_db_storage:
-    driver: local
-  pgadmin:
     driver: local
